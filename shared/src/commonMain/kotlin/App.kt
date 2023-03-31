@@ -1,21 +1,36 @@
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import di.storage
+import model.core.Result
+import model.core.rememberEventFlow
+import viewmodel.WeatherScreenEvent
+import viewmodel.WeatherViewModel
 
 @Composable
 internal fun App() {
-    MaterialTheme {
-        var text by remember { mutableStateOf("Hello, World!") }
+    CompositionLocalProvider(*storage().providers.toTypedArray()) {
+        val events = rememberEventFlow<WeatherScreenEvent>()
+        val viewModel = WeatherViewModel(events)
+        MaterialTheme {
+            Row {
+                when (viewModel.weatherData) {
+                    is Result.Loading -> Text("Loading...")
+                    is Result.Success ->
+                        Text(
+                            "Current degrees: " +
+                                    viewModel.weatherData.value.actualDegrees.toString()
+                        )
 
-        Button(onClick = {
-            text = "Hello, ${getPlatformName()}"
-        }) {
-            Text(text)
+                    is Result.Failure ->
+                        Text("Cannot load weather")
+                }
+                Button(onClick = { events.emit(WeatherScreenEvent.RefreshWeather) }) {
+                    Text("Refresh")
+                }
+            }
         }
     }
 }
