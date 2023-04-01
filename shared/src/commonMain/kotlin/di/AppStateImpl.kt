@@ -17,7 +17,7 @@ import viewmodel.WeatherViewModel
 private class AppStateImpl : AppState {
     override val storageScope: CoroutineScope = composableCoroutineScope()
     override val logger: Logger by lazy { LoggerImpl() }
-    override val netClient: StatelessPack<NetClientEvent, Result<ByteArray>> = statelessPack(
+    override val netClient: NetClient = statelessPack(
         provideAppState = true
     ) { events ->
         NetClient(events)
@@ -34,7 +34,7 @@ private class AppStateImpl : AppState {
 
     override val weatherScreenProvider: ScreenProvider<WeatherScreenEvent, WeatherScreenState> =
         screenProvider(
-            initialState = WeatherScreenState("", Result.Loading())
+            initialState = WeatherScreenState("", loadingResult())
         ) { events ->
             WeatherViewModel(events)
         }

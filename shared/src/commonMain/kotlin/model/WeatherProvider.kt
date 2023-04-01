@@ -2,19 +2,25 @@ package model
 
 import model.core.Result
 import model.core.StatefulPack
+import model.core.loadingResult
 
-typealias WeatherProvider = StatefulPack<WeatherProviderState, WeatherProviderEvent, Result<WeatherData>>
+typealias WeatherProvider = StatefulPack<WeatherProviderState, WeatherProviderEvent, WeatherData>
 
-data class WeatherData(
+
+data class MainWeatherData(
     val shortName: String,
     val description: String,
-    val icon: Result<ByteArray>,
     val actualDegrees: Float,
     val feelsLikeDegrees: Float
 )
 
+data class WeatherData(
+    val mainData: Result<MainWeatherData> = loadingResult(),
+    val icon: Result<ByteArray> = loadingResult()
+)
+
 data class WeatherProviderState(
-    val history: List<WeatherData>
+    val history: List<MainWeatherData>
 )
 
 

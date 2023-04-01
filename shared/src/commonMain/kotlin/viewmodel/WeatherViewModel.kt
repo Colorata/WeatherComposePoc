@@ -2,16 +2,16 @@ package viewmodel
 
 import androidx.compose.runtime.*
 import di.LocalAppState
+import model.MainWeatherData
 import model.WeatherData
 import model.WeatherProvider
 import model.WeatherProviderEvent
 import model.core.*
-import model.net.NetClient
-import model.net.NetClientEvent
 
 data class WeatherScreenState(
     val city: String,
-    val weatherData: Result<WeatherData>
+    val mainWeatherData: Result<MainWeatherData> = loadingResult(),
+    val iconWeather: Result<ByteArray> = loadingResult()
 )
 
 sealed class WeatherScreenEvent {
@@ -22,31 +22,30 @@ sealed class WeatherScreenEvent {
 fun WeatherViewModel(events: EventFlow<WeatherScreenEvent>): WeatherScreenState {
     val eventsCollected by events.collectAsState(null)
 
-    var state by remember { mutableStateOf(WeatherScreenState("Kazan", Result.Loading())) }
+    var state by remember { mutableStateOf(WeatherScreenState("Kazan")) }
 
+    val logger = LocalAppState.current.logger
     val weatherProvider = LocalAppState.current.weatherProviderPack
 
     val updateWeather = remember {
         suspend {
             weatherProvider.weatherForCity("Kazan") { result ->
-                state = when (result) {
-                    is Result.Success -> state.copy(weatherData = Result.Success(result.value))
-                    is Result.Failure -> state.copy(weatherData = Result.Failure(result.throwable))
-                    is Result.Loading -> state.copy(weatherData = Result.Loading())
-                }
+                state = state.copy(mainWeatherData = result.mainData, iconWeather = result.icon)
             }
         }
     }
-    LaunchedEffect(Unit) {
+
+    FlowLaunchedEffect(Unit) {
         updateWeather()
     }
 
-    LaunchedEffect(eventsCollected) {
+    FlowLaunchedEffect(eventsCollected) {
         val event = eventsCollected
         when (event?.value) {
             is WeatherScreenEvent.RefreshWeather -> {
                 updateWeather()
             }
+
             else -> {}
         }
     }
@@ -54,9 +53,9 @@ fun WeatherViewModel(events: EventFlow<WeatherScreenEvent>): WeatherScreenState 
     return state
 }
 
-private suspend fun WeatherProvider.weatherForCity(city: String, onLoad: (Result<WeatherData>) -> Unit) {
+private suspend fun WeatherProvider.weatherForCity(city: String, onLoad: (WeatherData) -> Unit) {
     provideFlow(
-        eventFlowOf(WeatherProviderEvent.WeatherForCity("Kazan"))
+        eventFlowOf(WeatherProviderEvent.WeatherForCity(city))
     ).collect {
         onLoad(it)
     }

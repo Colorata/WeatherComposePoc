@@ -17,7 +17,9 @@ class StatelessPack<EVENT, STATE> internal constructor(
     Pack<Nothing, EVENT, STATE> {
 
     override fun provideFlow(events: EventFlow<EVENT>): Flow<STATE> {
-        return composableFlow(*providers.toTypedArray()) { provider(events) }
+        return composableFlow(*providers.toTypedArray()) {
+            provider(events)
+        }
     }
 }
 

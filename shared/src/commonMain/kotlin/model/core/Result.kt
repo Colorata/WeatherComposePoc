@@ -6,10 +6,25 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 sealed class Result<T> {
-    class Loading<T> : Result<T>()
-    class Success<T>(val value: T) : Result<T>()
-    class Failure<T>(val throwable: Throwable) : Result<T>()
+    object Loading : Result<Nothing>()
+    class Success<T>(val value: T) : Result<T>() {
+        override fun toString(): String {
+            return "Result.Success[${value.toString()}]"
+        }
+    }
+    class Failure<T>(val throwable: Throwable) : Result<T>() {
+        override fun toString(): String {
+            return "Result.Failure[$throwable]"
+        }
+    }
 }
+
+fun <T> successResult(value: T) = Result.Success(value)
+
+@Suppress("UNCHECKED_CAST")
+fun <T> loadingResult() = Result.Loading as Result<T>
+
+fun <T> failureResult(throwable: Throwable) = Result.Failure<T>(throwable)
 
 @OptIn(ExperimentalContracts::class)
 fun <T> Result<T>.isSuccess(): Boolean {
@@ -36,10 +51,10 @@ fun <T> Result<T>.isFailure(): Boolean {
 }
 
 fun <T, R> Result<T>.asOther(converter: (T) -> R): Result<R> {
-    return when(this) {
-        is Result.Success -> Result.Success(converter(value))
-        is Result.Loading -> Result.Loading()
-        is Result.Failure -> Result.Failure(throwable)
+    return when (this) {
+        is Result.Success -> successResult(converter(value))
+        is Result.Loading -> loadingResult()
+        is Result.Failure -> failureResult(throwable)
     }
 }
 

@@ -7,9 +7,9 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.launch
-import model.core.EventFlow
-import model.core.LocalSharedCoroutineScope
-import model.core.Result
+import model.core.*
+
+typealias NetClient = StatelessPack<NetClientEvent, Result<ByteArray>>
 
 sealed class NetClientEvent {
     class Get(val url: String) : NetClientEvent()
@@ -23,15 +23,14 @@ inline fun NetClient(events: EventFlow<NetClientEvent>): Result<ByteArray> {
 
     val eventsCollected by events.collectAsState(null)
 
-    var result by remember { mutableStateOf<Result<ByteArray>>(Result.Loading()) }
-    LaunchedEffect(eventsCollected) {
+    var result by remember { mutableStateOf<Result<ByteArray>>(loadingResult()) }
+    FlowLaunchedEffect(eventsCollected) {
         val event = eventsCollected
         if (event != null) {
             if (event.value is NetClientEvent.Get) {
-                println(event.value)
                 sharedScope.launch {
                     val netResult = client.get(event.value.url)
-                    if (netResult.status.isSuccess()) result = Result.Success(netResult.body())
+                    if (netResult.status.isSuccess()) result = successResult(netResult.body())
                 }
             }
         }

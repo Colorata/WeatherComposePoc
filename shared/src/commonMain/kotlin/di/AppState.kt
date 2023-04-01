@@ -9,6 +9,7 @@ import model.WeatherProvider
 import model.WeatherProviderEvent
 import model.WeatherProviderState
 import model.core.*
+import model.net.NetClient
 import model.net.NetClientEvent
 import viewmodel.WeatherScreenEvent
 import viewmodel.WeatherScreenState
@@ -16,7 +17,7 @@ import viewmodel.WeatherScreenState
 interface AppState {
     val storageScope: CoroutineScope
     val logger: Logger
-    val netClient: StatelessPack<NetClientEvent, Result<ByteArray>>
+    val netClient: NetClient
     val json: Json
 
     val weatherProviderPack: WeatherProvider

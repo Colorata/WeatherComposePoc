@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import model.WeatherData
 import model.core.Result
 import model.core.isLoading
 import model.core.isSuccess
@@ -48,7 +47,7 @@ fun WeatherScreen(state: WeatherScreenState, onEvent: (WeatherScreenEvent) -> Un
         ) {
             Box(Modifier.fillMaxWidth().weight(0.3f), contentAlignment = Alignment.Center) {
                 AnimatedContent(
-                    targetState = if (state.weatherData.isSuccess()) state.weatherData.value.icon else Result.Loading(),
+                    targetState = state.iconWeather,
                     transitionSpec = transitionSpec
                 ) { targetState ->
                     if (targetState.isSuccess() && targetState.isSuccess()) {
@@ -61,11 +60,7 @@ fun WeatherScreen(state: WeatherScreenState, onEvent: (WeatherScreenEvent) -> Un
             }
             Box(Modifier.fillMaxWidth().weight(0.7f), contentAlignment = Alignment.TopCenter) {
                 AnimatedContent(
-                    targetState = when (state.weatherData) {
-                        is Result.Success -> Result.Success(state.weatherData.value.copy(icon = Result.Loading()))
-                        is Result.Loading -> Result.Loading()
-                        is Result.Failure -> Result.Failure(state.weatherData.throwable)
-                    },
+                    targetState = state.mainWeatherData,
                     transitionSpec = transitionSpec,
                 ) { targetState ->
                     val text = if (targetState.isSuccess()) {

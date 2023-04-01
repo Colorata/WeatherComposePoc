@@ -29,7 +29,6 @@ private class EventFlowImpl<T>: EventFlow<T> {
 
     override suspend fun collect(collector: FlowCollector<Event<T>>) {
         _flow.map {
-            key = !key
             Event(it, key)
         }.collect(collector)
     }
