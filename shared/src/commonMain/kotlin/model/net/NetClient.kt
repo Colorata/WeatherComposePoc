@@ -34,6 +34,7 @@ inline fun NetClient(events: EventFlow<NetClientEvent>): Result<String> {
         val event = eventsCollected
         if (event != null) {
             if (event.value is NetClientEvent.Get) {
+                println(event.value)
                 scope.launch {
                     val netResult = client.get(event.value.url)
                     if (netResult.status.isSuccess()) result = Result.Success(netResult.body())
@@ -44,4 +45,3 @@ inline fun NetClient(events: EventFlow<NetClientEvent>): Result<String> {
     return result
 }
 
-val LocalNetClient = compositionLocalOf<NetClient> { error("NetClient is not provided") }

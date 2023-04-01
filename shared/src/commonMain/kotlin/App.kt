@@ -1,34 +1,45 @@
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import di.storage
+import di.AppStateImpl
+import di.LocalAppState
 import model.core.Result
-import model.core.rememberEventFlow
 import viewmodel.WeatherScreenEvent
-import viewmodel.WeatherViewModel
 
 @Composable
 internal fun App() {
-    CompositionLocalProvider(*storage().providers.toTypedArray()) {
-        val events = rememberEventFlow<WeatherScreenEvent>()
-        val viewModel = WeatherViewModel(events)
+    val appState = remember { AppStateImpl() }
+    CompositionLocalProvider(LocalAppState provides appState) {
         MaterialTheme {
-            Row {
-                when (viewModel.weatherData) {
-                    is Result.Loading -> Text("Loading...")
-                    is Result.Success ->
-                        Text(
-                            "Current degrees: " +
-                                    viewModel.weatherData.value.actualDegrees.toString()
-                        )
+            var showWeather by remember { mutableStateOf(true) }
+            Column {
+                if (showWeather) {
+                    val events = LocalAppState.current.weatherScreenProvider.events
+                    val viewModel by LocalAppState.current.weatherScreenProvider.provide()
+                    Row {
+                        when (val weatherData = viewModel.weatherData) {
+                            is Result.Loading -> Text("Loading...")
+                            is Result.Success ->
+                                Text(
+                                    "Current degrees: " +
+                                            weatherData.value.actualDegrees.toString()
+                                )
 
-                    is Result.Failure ->
-                        Text("Cannot load weather")
+                            is Result.Failure ->
+                                Text("Cannot load weather")
+                        }
+                        Button(onClick = { events.emit(WeatherScreenEvent.RefreshWeather) }) {
+                            Text("Refresh")
+                        }
+                    }
                 }
-                Button(onClick = { events.emit(WeatherScreenEvent.RefreshWeather) }) {
-                    Text("Refresh")
+                Button({
+                    showWeather = !showWeather
+                }) {
+                    Text(if (showWeather) "Hide weather" else "Show weather")
                 }
             }
         }

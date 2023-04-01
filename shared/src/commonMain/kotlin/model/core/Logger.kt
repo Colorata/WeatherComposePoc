@@ -34,5 +34,3 @@ class LoggerImpl: Logger {
         log(tag, message)
     }
 }
-
-val LocalLogger = compositionLocalOf<Logger> { error("Logger is not provided") }

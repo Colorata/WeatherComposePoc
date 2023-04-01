@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import di.LocalAppState
 import model.WeatherData
-import model.WeatherProvider
 import model.WeatherProviderEvent
 import model.core.EventFlow
 import model.core.Result
@@ -19,7 +19,7 @@ data class WeatherScreenState(
 )
 
 sealed class WeatherScreenEvent {
-    object RefreshWeather: WeatherScreenEvent()
+    object RefreshWeather : WeatherScreenEvent()
 }
 
 @Composable
@@ -27,8 +27,8 @@ fun WeatherViewModel(events: EventFlow<WeatherScreenEvent>): WeatherScreenState 
     val eventsCollected by events.collectAsState(null)
 
     val weatherEvents = rememberEventFlow<WeatherProviderEvent>()
-    val weatherProvider = WeatherProvider(weatherEvents)
-
+    val weatherProvider = LocalAppState.current.weatherProviderPack.provide(weatherEvents)
+    println(weatherProvider)
     val netEvents = rememberEventFlow<NetClientEvent>()
     val netResult = NetClient(netEvents)
 
