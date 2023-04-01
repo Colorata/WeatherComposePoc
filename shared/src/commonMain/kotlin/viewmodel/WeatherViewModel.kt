@@ -1,15 +1,11 @@
 package viewmodel
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import di.LocalAppState
 import model.WeatherData
+import model.WeatherProvider
 import model.WeatherProviderEvent
-import model.core.EventFlow
-import model.core.Result
-import model.core.rememberEventFlow
+import model.core.*
 import model.net.NetClient
 import model.net.NetClientEvent
 
@@ -26,27 +22,42 @@ sealed class WeatherScreenEvent {
 fun WeatherViewModel(events: EventFlow<WeatherScreenEvent>): WeatherScreenState {
     val eventsCollected by events.collectAsState(null)
 
-    val weatherEvents = rememberEventFlow<WeatherProviderEvent>()
-    val weatherProvider = LocalAppState.current.weatherProviderPack.provide(weatherEvents)
-    val netEvents = rememberEventFlow<NetClientEvent>()
-    val netResult = NetClient(netEvents)
+    var state by remember { mutableStateOf(WeatherScreenState("Kazan", Result.Loading())) }
 
+    val weatherProvider = LocalAppState.current.weatherProviderPack
+
+    val updateWeather = remember {
+        suspend {
+            weatherProvider.weatherForCity("Kazan") { result ->
+                state = when (result) {
+                    is Result.Success -> state.copy(weatherData = Result.Success(result.value))
+                    is Result.Failure -> state.copy(weatherData = Result.Failure(result.throwable))
+                    is Result.Loading -> state.copy(weatherData = Result.Loading())
+                }
+            }
+        }
+    }
     LaunchedEffect(Unit) {
-        weatherEvents.emit(WeatherProviderEvent.WeatherForCity("Kazan"))
+        updateWeather()
     }
 
     LaunchedEffect(eventsCollected) {
         val event = eventsCollected
-        if (event != null) {
-            if (event.value is WeatherScreenEvent.RefreshWeather) {
-                weatherEvents.emit(WeatherProviderEvent.WeatherForCity("Kazan"))
+        when (event?.value) {
+            is WeatherScreenEvent.RefreshWeather -> {
+                updateWeather()
             }
+            else -> {}
         }
     }
 
-    LaunchedEffect(netResult) {
-        println(netResult)
-    }
+    return state
+}
 
-    return WeatherScreenState("Kazan", weatherProvider)
+private suspend fun WeatherProvider.weatherForCity(city: String, onLoad: (Result<WeatherData>) -> Unit) {
+    provideFlow(
+        eventFlowOf(WeatherProviderEvent.WeatherForCity("Kazan"))
+    ).collect {
+        onLoad(it)
+    }
 }

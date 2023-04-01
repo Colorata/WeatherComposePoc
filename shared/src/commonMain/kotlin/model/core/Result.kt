@@ -2,6 +2,8 @@ package model.core
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 sealed class Result<T> {
     class Loading<T> : Result<T>()
@@ -9,8 +11,32 @@ sealed class Result<T> {
     class Failure<T>(val throwable: Throwable) : Result<T>()
 }
 
+@OptIn(ExperimentalContracts::class)
+fun <T> Result<T>.isSuccess(): Boolean {
+    contract {
+        returns(true) implies (this@isSuccess is Result.Success)
+    }
+    return this is Result.Success
+}
+
+@OptIn(ExperimentalContracts::class)
+fun <T> Result<T>.isLoading(): Boolean {
+    contract {
+        returns(true) implies (this@isLoading is Result.Loading)
+    }
+    return this is Result.Loading
+}
+
+@OptIn(ExperimentalContracts::class)
+fun <T> Result<T>.isFailure(): Boolean {
+    contract {
+        returns(true) implies (this@isFailure is Result.Failure)
+    }
+    return this is Result.Failure
+}
+
 fun <T, R> Result<T>.asOther(converter: (T) -> R): Result<R> {
-    return when (this) {
+    return when(this) {
         is Result.Success -> Result.Success(converter(value))
         is Result.Loading -> Result.Loading()
         is Result.Failure -> Result.Failure(throwable)
@@ -18,14 +44,14 @@ fun <T, R> Result<T>.asOther(converter: (T) -> R): Result<R> {
 }
 
 fun <T> Flow<Result<T>>.onSuccess(block: suspend (T) -> Unit) = onEach {
-    if (it is Result.Success) block(it.value)
+    if (it.isSuccess()) block(it.value)
 }
 
 fun <T> Flow<Result<T>>.onLoading(block: suspend () -> Unit) = onEach {
-    if (it is Result.Loading) block()
+    if (it.isLoading()) block()
 }
 
 fun <T> Flow<Result<T>>.onFailure(block: suspend (Throwable) -> Unit) = onEach {
-    if (it is Result.Failure) block(it.throwable)
+    if (it.isFailure()) block(it.throwable)
 }
 

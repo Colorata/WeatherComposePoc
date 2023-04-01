@@ -2,6 +2,7 @@ package model.core
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -15,12 +16,17 @@ data class Event<T> internal constructor(
 
 interface EventFlow<T> : Flow<Event<T>> {
     fun emit(value: T)
+
+    fun reset()
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 private class EventFlowImpl<T>: EventFlow<T> {
+
     private val _flow =
         MutableSharedFlow<T>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private var key: Boolean = false
+
     override suspend fun collect(collector: FlowCollector<Event<T>>) {
         _flow.map {
             key = !key
@@ -30,6 +36,10 @@ private class EventFlowImpl<T>: EventFlow<T> {
 
     override fun emit(value: T) {
         _flow.tryEmit(value)
+    }
+
+    override fun reset() {
+        _flow.resetReplayCache()
     }
 }
 

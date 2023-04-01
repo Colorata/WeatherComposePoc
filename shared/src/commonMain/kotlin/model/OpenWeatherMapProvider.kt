@@ -29,9 +29,9 @@ fun OpenWeatherMapProvider(
                 weatherData = Result.Loading()
 
                 weatherForCity(netClient, event.city, json) { result ->
-                    if (result is Result.Success) {
+                    if (result.isSuccess()) {
                         state = state.copy(history = state.history + listOf(result.value))
-                    } else if (result is Result.Failure) {
+                    } else if (result.isFailure()) {
                         logger.error("Cannot fetch weather", result.throwable.stackTraceToString())
                     }
 

@@ -1,7 +1,6 @@
 package model.net
 
 import androidx.compose.runtime.*
-import di.LocalSharedCoroutineScope
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -9,15 +8,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.launch
 import model.core.EventFlow
+import model.core.LocalSharedCoroutineScope
 import model.core.Result
-
-object NetClient {
-    val client = HttpClient(CIO)
-
-    suspend inline fun <reified T> get(url: String): T {
-        return client.get(url).body()
-    }
-}
 
 sealed class NetClientEvent {
     class Get(val url: String) : NetClientEvent()
@@ -25,6 +17,7 @@ sealed class NetClientEvent {
 
 @Composable
 inline fun NetClient(events: EventFlow<NetClientEvent>): Result<ByteArray> {
+    // TODO: Move HttpClient to storage
     val client = remember { HttpClient(CIO) }
     val sharedScope = LocalSharedCoroutineScope.current
 

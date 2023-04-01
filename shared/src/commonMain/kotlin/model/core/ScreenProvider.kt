@@ -2,9 +2,7 @@ package model.core
 
 import androidx.compose.runtime.*
 import di.AppState
-import di.LocalSharedCoroutineScope
 import di.provideCoreElements
-import di.providedCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
@@ -28,6 +26,11 @@ data class ScreenProvider<EVENT, STATE> internal constructor(
     @Composable
     fun provide(): State<STATE> {
         return viewModelFlow.collectAsState(currentState)
+    }
+
+    fun dispose() {
+        currentState = initialState
+        events.reset()
     }
 }
 

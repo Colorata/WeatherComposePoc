@@ -6,17 +6,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asComposeImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
-import di.AppStateImpl
 import di.LocalAppState
+import di.ProvideAppState
 import model.core.Result
+import model.core.isSuccess
 import org.jetbrains.skia.Bitmap
 import viewmodel.WeatherScreenEvent
 
 @Composable
 internal fun App() {
-    val appState = remember { AppStateImpl() }
-    CompositionLocalProvider(LocalAppState provides appState) {
+    ProvideAppState {
         MaterialTheme {
             var showWeather by remember { mutableStateOf(true) }
             Column {
@@ -25,7 +24,7 @@ internal fun App() {
                     val viewModel by LocalAppState.current.weatherScreenProvider.provide()
                     Row {
                         val weatherData = viewModel.weatherData
-                        if (weatherData is Result.Success && weatherData.value.icon is Result.Success) {
+                        if (weatherData.isSuccess() && weatherData.value.icon.isSuccess()) {
                             Image(
                                 remember(weatherData) {
                                     Bitmap.makeFromImage(
