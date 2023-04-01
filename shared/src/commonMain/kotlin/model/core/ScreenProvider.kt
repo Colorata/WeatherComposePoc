@@ -2,6 +2,9 @@ package model.core
 
 import androidx.compose.runtime.*
 import di.AppState
+import di.LocalSharedCoroutineScope
+import di.provideCoreElements
+import di.providedCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
@@ -33,5 +36,10 @@ fun <EVENT, STATE> AppState.screenProvider(
     initialState: STATE,
     viewModel: @Composable (events: EventFlow<EVENT>) -> STATE
 ): ScreenProvider<EVENT, STATE> {
-    return ScreenProvider(providers.toList(), storageScope, initialState, viewModel)
+    return ScreenProvider(
+        providers.toList() + provideCoreElements(provideAppState = true),
+        storageScope,
+        initialState,
+        viewModel
+    )
 }

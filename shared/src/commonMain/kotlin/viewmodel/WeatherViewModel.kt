@@ -28,7 +28,6 @@ fun WeatherViewModel(events: EventFlow<WeatherScreenEvent>): WeatherScreenState 
 
     val weatherEvents = rememberEventFlow<WeatherProviderEvent>()
     val weatherProvider = LocalAppState.current.weatherProviderPack.provide(weatherEvents)
-    println(weatherProvider)
     val netEvents = rememberEventFlow<NetClientEvent>()
     val netResult = NetClient(netEvents)
 

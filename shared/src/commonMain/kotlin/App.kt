@@ -1,12 +1,16 @@
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.asComposeImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import di.AppStateImpl
 import di.LocalAppState
 import model.core.Result
+import org.jetbrains.skia.Bitmap
 import viewmodel.WeatherScreenEvent
 
 @Composable
@@ -20,7 +24,20 @@ internal fun App() {
                     val events = LocalAppState.current.weatherScreenProvider.events
                     val viewModel by LocalAppState.current.weatherScreenProvider.provide()
                     Row {
-                        when (val weatherData = viewModel.weatherData) {
+                        val weatherData = viewModel.weatherData
+                        if (weatherData is Result.Success && weatherData.value.icon is Result.Success) {
+                            Image(
+                                remember(weatherData) {
+                                    Bitmap.makeFromImage(
+                                        org.jetbrains.skia.Image.makeFromEncoded(
+                                            weatherData.value.icon.value
+                                        )
+                                    )
+                                }.asComposeImageBitmap(),
+                                contentDescription = null
+                            )
+                        }
+                        when (weatherData) {
                             is Result.Loading -> Text("Loading...")
                             is Result.Success ->
                                 Text(

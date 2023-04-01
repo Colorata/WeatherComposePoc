@@ -1,6 +1,7 @@
 package model.net
 
 import androidx.compose.runtime.*
+import di.LocalSharedCoroutineScope
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -23,19 +24,19 @@ sealed class NetClientEvent {
 }
 
 @Composable
-inline fun NetClient(events: EventFlow<NetClientEvent>): Result<String> {
+inline fun NetClient(events: EventFlow<NetClientEvent>): Result<ByteArray> {
     val client = remember { HttpClient(CIO) }
-    val scope = rememberCoroutineScope()
+    val sharedScope = LocalSharedCoroutineScope.current
 
     val eventsCollected by events.collectAsState(null)
 
-    var result by remember { mutableStateOf<Result<String>>(Result.Loading()) }
+    var result by remember { mutableStateOf<Result<ByteArray>>(Result.Loading()) }
     LaunchedEffect(eventsCollected) {
         val event = eventsCollected
         if (event != null) {
             if (event.value is NetClientEvent.Get) {
                 println(event.value)
-                scope.launch {
+                sharedScope.launch {
                     val netResult = client.get(event.value.url)
                     if (netResult.status.isSuccess()) result = Result.Success(netResult.body())
                 }

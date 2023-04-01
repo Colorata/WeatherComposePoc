@@ -35,5 +35,12 @@ private class EventFlowImpl<T>: EventFlow<T> {
 
 fun <T> eventFlow(): EventFlow<T> = EventFlowImpl()
 
+fun <T> eventFlowOf(vararg values: T): EventFlow<T> {
+    return eventFlow<T>().apply {
+        values.forEach {
+            emit(it)
+        }
+    }
+}
 @Composable
 fun <T> rememberEventFlow() = remember { eventFlow<T>() }
