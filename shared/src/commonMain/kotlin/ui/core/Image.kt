@@ -5,9 +5,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.DefaultAlpha
-import androidx.compose.ui.graphics.asComposeImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import org.jetbrains.skia.Bitmap
 
 @Composable
 fun Image(
@@ -18,14 +17,10 @@ fun Image(
     contentScale: ContentScale = ContentScale.Fit,
     alpha: Float = DefaultAlpha,
 ) {
-    val bitmap = remember(image) {
-        Bitmap.makeFromImage(
-            org.jetbrains.skia.Image.makeFromEncoded(
-                image
-            )
-        )
-    }.asComposeImageBitmap()
+    val bitmap = remember(image) { image.toImageBitmap() }
     androidx.compose.foundation.Image(
         bitmap, contentDescription, modifier, alignment, contentScale, alpha
     )
 }
+
+expect fun ByteArray.toImageBitmap(): ImageBitmap

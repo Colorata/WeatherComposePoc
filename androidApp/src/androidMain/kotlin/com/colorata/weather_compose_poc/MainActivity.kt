@@ -1,4 +1,4 @@
-package com.myapplication
+package com.colorata.weather_compose_poc
 
 import MainView
 import android.os.Bundle

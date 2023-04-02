@@ -1,4 +1,4 @@
-rootProject.name = "My application"
+rootProject.name = "WeatherComposePoc"
 
 include(":androidApp")
 include(":shared")
