@@ -10,6 +10,9 @@ sealed interface Pack<IN_STATE, EVENT, OUT_STATE> {
     fun provideFlow(events: EventFlow<EVENT>): Flow<OUT_STATE>
 }
 
+fun <IN_STATE, EVENT, OUT_STATE> Pack<IN_STATE, EVENT, OUT_STATE>.provideFlowFor(vararg events: EVENT) =
+    provideFlow(eventFlowOf(*events))
+
 class StatelessPack<EVENT, STATE> internal constructor(
     private val providers: List<ProvidedValue<out Any>>,
     private val provider: @Composable (events: EventFlow<EVENT>) -> STATE

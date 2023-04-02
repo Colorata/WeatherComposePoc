@@ -9,14 +9,14 @@ import io.ktor.http.*
 import kotlinx.coroutines.launch
 import model.core.*
 
-typealias NetClient = StatelessPack<NetClientEvent, Result<ByteArray>>
+typealias NetProvider = StatelessPack<NetProviderEvent, Result<ByteArray>>
 
-sealed class NetClientEvent {
-    class Get(val url: String) : NetClientEvent()
+sealed class NetProviderEvent {
+    class Get(val url: String) : NetProviderEvent()
 }
 
 @Composable
-inline fun NetClient(events: EventFlow<NetClientEvent>): Result<ByteArray> {
+inline fun NetProvider(events: EventFlow<NetProviderEvent>): Result<ByteArray> {
     // TODO: Move HttpClient to storage
     val client = remember { HttpClient(CIO) }
     val sharedScope = LocalSharedCoroutineScope.current
@@ -26,12 +26,12 @@ inline fun NetClient(events: EventFlow<NetClientEvent>): Result<ByteArray> {
     var result by remember { mutableStateOf<Result<ByteArray>>(loadingResult()) }
     FlowLaunchedEffect(eventsCollected) {
         val event = eventsCollected
-        if (event != null) {
-            if (event.value is NetClientEvent.Get) {
-                sharedScope.launch {
-                    val netResult = client.get(event.value.url)
-                    if (netResult.status.isSuccess()) result = successResult(netResult.body())
-                }
+        if (event != null && event.value is NetProviderEvent.Get) {
+            result = loadingResult()
+            sharedScope.launch {
+                val netResult = client.get(event.value.url)
+                result = if (netResult.status.isSuccess()) successResult(netResult.body())
+                else failureResult(Exception(netResult.status.description))
             }
         }
     }

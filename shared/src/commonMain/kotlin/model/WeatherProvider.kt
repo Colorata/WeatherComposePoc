@@ -20,7 +20,7 @@ data class WeatherData(
 )
 
 data class WeatherProviderState(
-    val history: List<MainWeatherData>
+    val history: List<MainWeatherData> = listOf()
 )
 
 

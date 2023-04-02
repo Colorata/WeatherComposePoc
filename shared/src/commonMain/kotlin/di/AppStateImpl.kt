@@ -8,8 +8,7 @@ import kotlinx.serialization.json.Json
 import model.OpenWeatherMapProvider
 import model.WeatherProviderState
 import model.core.*
-import model.net.NetClient
-import model.net.NetClientEvent
+import model.net.NetProvider
 import viewmodel.WeatherScreenEvent
 import viewmodel.WeatherScreenState
 import viewmodel.WeatherViewModel
@@ -17,16 +16,16 @@ import viewmodel.WeatherViewModel
 private class AppStateImpl : AppState {
     override val storageScope: CoroutineScope = composableCoroutineScope()
     override val logger: Logger by lazy { LoggerImpl() }
-    override val netClient: NetClient = statelessPack(
+    override val netProvider: NetProvider = statelessPack(
         provideAppState = true
     ) { events ->
-        NetClient(events)
+        NetProvider(events)
     }
     override val json: Json by lazy { Json { ignoreUnknownKeys = true } }
 
     override val weatherProviderPack =
         statefulPack(
-            initialState = WeatherProviderState(listOf()),
+            initialState = WeatherProviderState(),
             provideAppState = true
         ) { state, events ->
             OpenWeatherMapProvider(state, events)
@@ -34,7 +33,7 @@ private class AppStateImpl : AppState {
 
     override val weatherScreenProvider: ScreenProvider<WeatherScreenEvent, WeatherScreenState> =
         screenProvider(
-            initialState = WeatherScreenState("", loadingResult())
+            initialState = WeatherScreenState("")
         ) { events ->
             WeatherViewModel(events)
         }

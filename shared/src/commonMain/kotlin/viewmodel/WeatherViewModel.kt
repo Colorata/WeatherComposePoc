@@ -35,11 +35,11 @@ fun WeatherViewModel(events: EventFlow<WeatherScreenEvent>): WeatherScreenState 
         }
     }
 
-    FlowLaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {
         updateWeather()
     }
 
-    FlowLaunchedEffect(eventsCollected) {
+    LaunchedEffect(eventsCollected) {
         val event = eventsCollected
         when (event?.value) {
             is WeatherScreenEvent.RefreshWeather -> {
@@ -54,8 +54,8 @@ fun WeatherViewModel(events: EventFlow<WeatherScreenEvent>): WeatherScreenState 
 }
 
 private suspend fun WeatherProvider.weatherForCity(city: String, onLoad: (WeatherData) -> Unit) {
-    provideFlow(
-        eventFlowOf(WeatherProviderEvent.WeatherForCity(city))
+    provideFlowFor(
+        WeatherProviderEvent.WeatherForCity(city)
     ).collect {
         onLoad(it)
     }

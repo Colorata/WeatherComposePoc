@@ -6,6 +6,7 @@ import di.provideCoreElements
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
+import kotlin.reflect.KProperty
 
 data class ScreenProvider<EVENT, STATE> internal constructor(
     val providers: List<ProvidedValue<out Any>>,

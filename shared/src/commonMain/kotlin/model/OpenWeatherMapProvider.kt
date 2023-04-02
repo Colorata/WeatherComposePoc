@@ -10,8 +10,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import model.core.*
-import model.net.NetClient
-import model.net.NetClientEvent
+import model.net.NetProvider
+import model.net.NetProviderEvent
 
 @Composable
 fun OpenWeatherMapProvider(
@@ -21,7 +21,7 @@ fun OpenWeatherMapProvider(
     val json = LocalAppState.current.json
     val logger = LocalAppState.current.logger
 
-    val netClient = LocalAppState.current.netClient
+    val netClient = LocalAppState.current.netProvider
     val eventsCollected by events.collectAsState(null)
     var weatherData by remember { mutableStateOf(WeatherData()) }
 
@@ -50,17 +50,15 @@ fun OpenWeatherMapProvider(
 }
 
 private suspend fun weatherForCity(
-    netClient: NetClient,
+    netClient: NetProvider,
     city: String,
     json: Json,
     logger: Logger,
     onLoad: (Result<MainWeatherData>) -> Unit,
     onLoadIcon: (Result<ByteArray>) -> Unit
 ) {
-    netClient.provideFlow(
-        eventFlowOf(
-            NetClientEvent.Get(urlForCity(city, OPENWEATHERMAP_API_KEY))
-        )
+    netClient.provideFlowFor(
+        NetProviderEvent.Get(urlForCity(city, OPENWEATHERMAP_API_KEY))
     ).onSuccess {
         val result = json.decodeFromString<OpenWeatherMapWeatherResponse>(it.decodeToString())
         val convertedResult = result.toMainWeatherData()
@@ -68,10 +66,8 @@ private suspend fun weatherForCity(
 
         val iconName = result.icon
         if (iconName != null) {
-            netClient.provideFlow(
-                eventFlowOf(
-                    NetClientEvent.Get(urlForIcon(iconName))
-                )
+            netClient.provideFlowFor(
+                NetProviderEvent.Get(urlForIcon(iconName))
             ).collect { icon ->
                 delay(1000)
                 onLoadIcon(icon)
